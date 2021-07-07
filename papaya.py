@@ -234,7 +234,7 @@ def get_username(username):
                     not_vulnerable()
                     return
 
-## gets number of usernames along with first chaacter
+## gets number of usernames along with first character
 def get_username_wrapper():
     usernames = []
     alphabet = list(map(chr, range(97, 122)))
